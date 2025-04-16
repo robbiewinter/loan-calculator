@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Loan List</title>
+</head>
+<body>
+    <h1>Loan List</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Loan Amount</th>
+                <th>Interest Rate</th>
+                <th>Loan Term</th>
+                <th>Calculation Type</th>
+                <th>Monthly Payment</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="loan : ${loans}">
+                <td th:text="${loan.id}">ID</td>
+                <td th:text="${loan.loanAmount}">Loan Amount</td>
+                <td th:text="${loan.interestRate}">Interest Rate</td>
+                <td th:text="${loan.loanTerm}">Loan Term</td>
+                <td th:text="${loan.calculationType}">Calculation Type</td>
+                <td th:text="${loan.calculateMonthlyPayment()}">Monthly Payment</td>
+            </tr>
+        </tbody>
+    </table>
+    <a href="/loan-form">Add New Loan</a>
+</body>
+</html>

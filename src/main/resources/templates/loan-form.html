@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Loan Form</title>
+    <script>
+        function showLoanForm() {
+            document.getElementById('loanFormContainer').style.display = 'block';
+            document.getElementById('addLoanButton').style.display = 'none';
+        }
+    </script>
+</head>
+<body>
+    <h1>Enter Loan Information</h1>
+    <button id="addLoanButton" onclick="showLoanForm()">Add Loan</button>
+
+    <div id="loanFormContainer" style="display: none;">
+        <form th:action="@{/submit-loan}" th:object="${loanInfo}" method="post">
+            <label for="loanAmount">Loan Amount:</label>
+            <input type="number" id="loanAmount" th:field="*{loanAmount}" step="1" required />
+            <br />
+
+            <label for="interestRate">Interest Rate (%):</label>
+            <input type="number" id="interestRate" th:field="*{interestRate}" step="0.5 " required />
+            <br />
+
+            <label for="loanTerm">Loan Term (in years):</label>
+            <input type="number" id="loanTerm" th:field="*{loanTerm}" required />
+            <br />
+
+            <label for="calculationType">Calculation Type:</label>
+            <select id="calculationType" th:field="*{calculationType}" required>
+                <option value="AMORTIZED">Amortized Loan</option>
+                <option value="SIMPLE">Simple Interest</option>
+                <option value="COMPOUND">Compound Interest</option>
+            </select>
+            <br />
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
