@@ -1,32 +1,46 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" /> 
     <title>Loan List</title>
 </head>
-<body>
-    <h1>Loan List</h1>
-    <table border="1">
-        <thead>
+<body class="container mt-5">
+    <h1 class="text-center mb-4">Loan List</h1>
+    <table class="table table-striped table-bordered">
+        <thead class="thead-dark">
             <tr>
-                <th>ID</th>
+                <th>Loan Name</th>
                 <th>Loan Amount</th>
                 <th>Interest Rate</th>
-                <th>Loan Term</th>
+                <th>Loan Term (Months)</th>
                 <th>Calculation Type</th>
+                <th>Start Date</th>
                 <th>Monthly Payment</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             <tr th:each="loan : ${loans}">
-                <td th:text="${loan.id}">ID</td>
+                <td><a th:href="@{/loan-details/{id}(id=${loan.id})}" th:text="${loan.loanName}">Loan Name</a></td>
                 <td th:text="${loan.loanAmount}">Loan Amount</td>
                 <td th:text="${loan.interestRate}">Interest Rate</td>
                 <td th:text="${loan.loanTerm}">Loan Term</td>
                 <td th:text="${loan.calculationType}">Calculation Type</td>
+                <td th:text="${loan.startDate}">Start Date</td>
                 <td th:text="${loan.calculateMonthlyPayment()}">Monthly Payment</td>
+                <td>
+                    <a th:href="@{/loan-edit/{id}(id=${loan.id})}" class="btn btn-primary btn-sm">Edit</a>
+                    <form th:action="@{/loan-delete/{id}(id=${loan.id})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
             </tr>
         </tbody>
     </table>
-    <a href="/loan-form">Add New Loan</a>
+    <div class="text-center mt-4">
+        <a href="/loan-form" class="btn btn-success">Add New Loan</a>
+    </div>
 </body>
 </html>

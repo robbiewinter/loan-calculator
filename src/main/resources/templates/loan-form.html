@@ -1,42 +1,52 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Loan Form</title>
-    <script>
-        function showLoanForm() {
-            document.getElementById('loanFormContainer').style.display = 'block';
-            document.getElementById('addLoanButton').style.display = 'none';
-        }
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" />
+    <title th:text="${loanInfo.id != null} ? 'Edit Loan' : 'Add Loan'">Loan Form</title>
 </head>
-<body>
-    <h1>Enter Loan Information</h1>
-    <button id="addLoanButton" onclick="showLoanForm()">Add Loan</button>
+<body class="container mt-5">
+    <h1 class="text-center mb-4" th:text="${loanInfo.id != null} ? 'Edit Loan Information' : 'Enter Loan Information'">Enter Loan Information</h1>
+    <form th:action="@{/submit-loan}" th:object="${loanInfo}" method="post" class="needs-validation" novalidate>
+        <input type="hidden" th:field="*{id}" />
 
-    <div id="loanFormContainer" style="display: none;">
-        <form th:action="@{/submit-loan}" th:object="${loanInfo}" method="post">
-            <label for="loanAmount">Loan Amount:</label>
-            <input type="number" id="loanAmount" th:field="*{loanAmount}" step="1" required />
-            <br />
+        <div class="mb-3">
+            <label for="loanName" class="form-label">Loan Name:</label>
+            <input type="text" id="loanName" th:field="*{loanName}" class="form-control" required />
+        </div>
 
-            <label for="interestRate">Interest Rate (%):</label>
-            <input type="number" id="interestRate" th:field="*{interestRate}" step="0.5 " required />
-            <br />
+        <div class="mb-3">
+            <label for="loanAmount" class="form-label">Loan Amount:</label>
+            <input type="number" id="loanAmount" th:field="*{loanAmount}" class="form-control" step="1" required />
+        </div>
 
-            <label for="loanTerm">Loan Term (in years):</label>
-            <input type="number" id="loanTerm" th:field="*{loanTerm}" required />
-            <br />
+        <div class="mb-3">
+            <label for="interestRate" class="form-label">Interest Rate (%):</label>
+            <input type="number" id="interestRate" th:field="*{interestRate}" class="form-control" step="0.5" required />
+        </div>
 
-            <label for="calculationType">Calculation Type:</label>
-            <select id="calculationType" th:field="*{calculationType}" required>
-                <option value="AMORTIZED">Amortized Loan</option>
+        <div class="mb-3">
+            <label for="loanTerm" class="form-label">Loan Term (in months):</label>
+            <input type="number" id="loanTerm" th:field="*{loanTerm}" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="calculationType" class="form-label">Calculation Type:</label>
+            <select id="calculationType" th:field="*{calculationType}" class="form-select" required>
                 <option value="SIMPLE">Simple Interest</option>
                 <option value="COMPOUND">Compound Interest</option>
             </select>
-            <br />
+        </div>
 
-            <button type="submit">Submit</button>
-        </form>
-    </div>
+        <div class="mb-3">
+            <label for="startDate" class="form-label">Start Date:</label>
+            <input type="date" id="startDate" th:field="*{startDate}" class="form-control" required />
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary" th:text="${loanInfo.id != null} ? 'Update' : 'Submit'">Submit</button>
+        </div>
+    </form>
 </body>
 </html>
