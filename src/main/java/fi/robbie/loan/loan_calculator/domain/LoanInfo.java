@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.time.LocalDate;
 
 @Entity
 public class LoanInfo {
@@ -14,7 +15,9 @@ public class LoanInfo {
     private double loanAmount;
     private double interestRate;
     private int loanTerm;
-    private String calculationType; // Loan type
+    private String calculationType;
+    private String loanName;
+    private LocalDate startDate;
 
     // Getters and setters
     public Long getId() {
@@ -57,7 +60,23 @@ public class LoanInfo {
         this.calculationType = calculationType;
     }
 
-    // Calculates monthly payment based on the loan type
+    public String getLoanName() {
+        return loanName;
+    }
+
+    public void setLoanName(String loanName) {
+        this.loanName = loanName;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    // Calculates monthly payment based on the loan type and updated loan amount
     public double calculateMonthlyPayment() {
         double payment;
         switch (calculationType.toUpperCase()) {
@@ -67,33 +86,22 @@ public class LoanInfo {
             case "COMPOUND":
                 payment = calculateCompoundInterest();
                 break;
-            default: // Default is amortized loan
-                payment = calculateAmortizedPayment();
+            default:
+                throw new IllegalArgumentException("Unsupported calculation type: " + calculationType);
         }
         return Math.round(payment * 100.0) / 100.0;
     }
 
-    // Amortized loan calculation
-    private double calculateAmortizedPayment() {
-        double monthlyRate = interestRate / 100 / 12; // Convert yearly rate to monthly
-        int totalPayments = loanTerm * 12; // Number of payments
-        if (monthlyRate == 0) {
-            return loanAmount / totalPayments; // If interest rate is 0
-        }
-        return loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
-               (Math.pow(1 + monthlyRate, totalPayments) - 1);
-    }
-
     // Simple interest calculation
     private double calculateSimpleInterest() {
-        double totalInterest = loanAmount * (interestRate / 100) * loanTerm;
-        return (loanAmount + totalInterest) / (loanTerm * 12);
+        double totalInterest = loanAmount * (interestRate / 100) * (loanTerm / 12.0); // Convert months to years
+        return (loanAmount + totalInterest) / loanTerm; // Loan term is in months
     }
 
     // Compound interest calculation
     private double calculateCompoundInterest() {
-        double monthlyRate = interestRate / 100 / 12; // Convert annual rate to monthly
-        int totalPayments = loanTerm * 12; // Total number of payments
+        double monthlyRate = interestRate / 100 / 12;
+        int totalPayments = loanTerm; // Loan term is already in months
         return loanAmount * Math.pow(1 + monthlyRate, totalPayments) / totalPayments;
     }
 }
