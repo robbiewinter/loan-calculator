@@ -2,11 +2,12 @@ package fi.robbie.loan.loan_calculator;
 
 import fi.robbie.loan.loan_calculator.domain.LoanInfo;
 import fi.robbie.loan.loan_calculator.domain.LoanInfoRepository;
-
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 
@@ -42,5 +43,10 @@ public class LoanCalculatorApplication {
 			loanInfoRepository.save(simpleLoan);
 			loanInfoRepository.save(compoundLoan);
 		};
+	}
+
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
 	}
 }
