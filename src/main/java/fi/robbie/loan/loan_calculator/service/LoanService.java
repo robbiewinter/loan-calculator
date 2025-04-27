@@ -1,6 +1,13 @@
 package fi.robbie.loan.loan_calculator.service;
 
 import fi.robbie.loan.loan_calculator.domain.Payment;
+import fi.robbie.loan.loan_calculator.domain.LoanInfo;
+import fi.robbie.loan.loan_calculator.domain.User;
+import fi.robbie.loan.loan_calculator.domain.LoanInfoRepository;
+import fi.robbie.loan.loan_calculator.domain.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -12,6 +19,12 @@ import java.util.List;
  */
 @Service
 public class LoanService {
+
+    @Autowired
+    private LoanInfoRepository loanInfoRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Calculates the loan payment schedule based on the calculation type.
@@ -34,7 +47,7 @@ public class LoanService {
             case "COMPOUND":
                 return calculateCompoundInterestSchedule(principal, annualRate, months);
             default:
-                throw new IllegalArgumentException("Unsupported calculation type: " + calculationType);
+                throw new IllegalArgumentException("Something went wrong..");
         }
     }
 
@@ -76,5 +89,28 @@ public class LoanService {
         }
 
         return schedule;
+    }
+
+    public void createLoan(LoanInfo loanInfo) {
+        // Retrieve the currently logged-in user
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+
+        // Fetch the user entity from the database
+        User currentUser = userRepository.findByUsername(username);
+        if (currentUser == null) {
+            throw new IllegalStateException("Logged in user not found");
+        }
+
+        // Associate the loan with the logged-in user
+        loanInfo.setUser(currentUser);
+
+        // Save the loan
+        loanInfoRepository.save(loanInfo);
     }
 }

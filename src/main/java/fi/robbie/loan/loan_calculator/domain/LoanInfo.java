@@ -1,9 +1,6 @@
 package fi.robbie.loan.loan_calculator.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
@@ -18,6 +15,10 @@ public class LoanInfo {
     private String calculationType;
     private String loanName;
     private LocalDate startDate;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = true)
+    private User user;
 
     // Getters and setters
     public Long getId() {
@@ -76,6 +77,14 @@ public class LoanInfo {
         this.startDate = startDate;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     // Calculates monthly payment based on the loan type and updated loan amount
     public double calculateMonthlyPayment() {
         double payment;
@@ -87,7 +96,7 @@ public class LoanInfo {
                 payment = calculateCompoundInterest();
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported calculation type: " + calculationType);
+                throw new IllegalArgumentException("Something went wrong");
         }
         return Math.round(payment * 100.0) / 100.0;
     }
@@ -101,7 +110,7 @@ public class LoanInfo {
     // Compound interest calculation
     private double calculateCompoundInterest() {
         double monthlyRate = interestRate / 100 / 12;
-        int totalPayments = loanTerm; // Loan term is already in months
+        int totalPayments = loanTerm;
         return loanAmount * Math.pow(1 + monthlyRate, totalPayments) / totalPayments;
     }
 }
