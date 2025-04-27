@@ -1,5 +1,6 @@
 package fi.robbie.loan.loan_calculator.web;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,22 +8,34 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import fi.robbie.loan.loan_calculator.domain.LoanInfo;
 import fi.robbie.loan.loan_calculator.domain.LoanInfoRepository;
 import fi.robbie.loan.loan_calculator.domain.Payment;
+import fi.robbie.loan.loan_calculator.domain.User;
+import fi.robbie.loan.loan_calculator.domain.UserRepository;
 import fi.robbie.loan.loan_calculator.service.LoanService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @Controller
 public class MyController {
 
+    private static final Logger logger = LoggerFactory.getLogger(MyController.class);
+
     private final LoanInfoRepository loanInfoRepository;
     private final LoanService loanService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public MyController(LoanInfoRepository loanInfoRepository, LoanService loanService) {
+    public MyController(LoanInfoRepository loanInfoRepository, LoanService loanService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.loanInfoRepository = loanInfoRepository;
         this.loanService = loanService;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Handles GET requests to the root URL ("/")
@@ -35,6 +48,25 @@ public class MyController {
     // Handles POST requests to submit the loan form
     @PostMapping("/submit-loan")
     public String submitLoanForm(@ModelAttribute LoanInfo loanInfo) {
+        // Retrieve the currently logged-in user
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+
+        // Fetch the user entity from the database
+        User currentUser = userRepository.findByUsername(username);
+        if (currentUser == null) {
+            throw new IllegalStateException("Logged-in user not found in the database");
+        }
+
+        // Associate the loan with the logged-in user
+        loanInfo.setUser(currentUser);
+
+        // Save the loan
         loanInfoRepository.save(loanInfo);
         return "redirect:/loan-list";
     }
@@ -42,8 +74,23 @@ public class MyController {
     // Handles GET requests to display the list of loans
     @GetMapping("/loan-list")
     public String showLoanList(Model model) {
-        List<LoanInfo> loans = loanInfoRepository.findAll();
+        // Retrieve the currently logged-in user
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
 
+        // Fetch the user entity from the database
+        User currentUser = userRepository.findByUsername(username);
+        if (currentUser == null) {
+            throw new IllegalStateException("Logged-in user not found in the database");
+        }
+
+        // Fetch loans associated with the logged-in user
+        List<LoanInfo> loans = loanInfoRepository.findByUser(currentUser);
         model.addAttribute("loans", loans);
         return "loan-list";
     }
@@ -89,5 +136,35 @@ public class MyController {
         loanInfo.setLoanAmount(loanInfo.getLoanAmount() - extraPayment); // Reduce the loan amount by the extra payment
         loanInfoRepository.save(loanInfo);
         return "redirect:/loan-details/" + id;
+    }
+
+    // Handles GET requests to show the login page
+    @GetMapping("/login")
+    public String login() {
+        return "login";
+    }
+
+    // Handles GET requests to show the registration page
+    @GetMapping("/register")
+    public String register(Model model) {
+        logger.info("Accessing the registration page.");
+        model.addAttribute("user", new User()); // Ensure a User object is added to the model
+        return "register";
+    }
+
+    // Handles POST requests to register a new user
+    @PostMapping("/register")
+    public String registerUser(@RequestParam String username, @RequestParam String password, @RequestParam String email) {
+        try {
+            User user = new User();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setEmail(email);
+            userRepository.save(user);
+        } catch (Exception e) {
+            return "register";
+        }
+
+        return "redirect:/login";
     }
 }
